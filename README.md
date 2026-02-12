@@ -4,16 +4,19 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.1-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
-[![Gemini](https://img.shields.io/badge/Gemini-1.5_Flash-orange)](https://ai.google.dev/)
+[![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-orange)](https://ai.google.dev/)
 
 ## ✨ Features
 
-- 🤖 **AI 맞춤 추천**: Gemini 1.5 Flash 기반 개인화된 선물 추천
+- 🤖 **AI 맞춤 추천**: Gemini 2.5 Flash 기반 개인화된 선물 추천
+- 🎯 **프리셋 선택**: 관계/상황 버튼으로 빠른 입력
+- 🔄 **재추천**: 마음에 안 들면 원클릭 재추천
 - 🎨 **화려한 UI/UX**: Glassmorphism + Framer Motion 애니메이션
 - 💌 **카드 메시지**: 감성적인 메시지 생성 및 복사 기능
-- 🛍️ **즉시 구매**: 네이버 쇼핑 최저가 검색 연동
-- ♿ **접근성**: 저사양 기기 및 모션 민감성 사용자 지원
+- 🛍️ **즉시 구매**: 네이버/쿠팡 검색 연동
 - 📱 **반응형**: 모바일부터 데스크톱까지 완벽 대응
+
+🌐 **Live Demo**: [gift-genie-gamma.vercel.app](https://gift-genie-gamma.vercel.app)
 
 ## 🚀 Quick Start
 
@@ -61,7 +64,7 @@ npm start
 - **Styling**: Tailwind CSS v4
 
 ### AI & APIs
-- **AI Provider**: Google Gemini 1.5 Flash (무료 티어)
+- **AI Provider**: Google Gemini 2.5 Flash (무료 티어, 자동 폴백 체인)
 - **Search Integration**: Naver Shopping
 
 ### UI/UX
@@ -106,25 +109,27 @@ gift-genie/
 
 ### Budget Range
 
-\`.env.local\`:
-\`\`\`env
+`.env.local`:
+```env
 NEXT_PUBLIC_MIN_BUDGET=5000      # 최소 예산
 NEXT_PUBLIC_MAX_BUDGET=300000    # 최대 예산
-\`\`\`
+```
 
 ### AI Model
 
-\`app/api/recommend/route.ts\`:
-\`\`\`typescript
-const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash"  # 무료 티어
-});
-\`\`\`
+`app/api/recommend/route.ts` — 자동 폴백 체인:
+```typescript
+const MODELS = [
+  "gemini-2.5-flash",      // 1순위
+  "gemini-2.0-flash-lite", // 2순위
+  "gemini-2.0-flash",      // 3순위
+];
+```
 
 ## 📊 API Usage
 
 ### Request
-\`\`\`typescript
+```typescript
 POST /api/recommend
 {
   "target": "30대 남자 직장상사",
