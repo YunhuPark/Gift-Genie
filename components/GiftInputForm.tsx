@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Gift, User, Calendar, Wallet, Sparkles, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import GiftResults from "./GiftResults";
+import { hapticFeedback } from "@/lib/toss";
 
 interface FormData {
   target: string;
@@ -75,6 +76,7 @@ export default function GiftInputForm({ onBack }: GiftInputFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    hapticFeedback('light'); // 토스 환경에서 클릭 진동 발생
     fetchRecommendations(formData);
   };
 
