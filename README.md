@@ -191,3 +191,8 @@ MIT — 개인 및 상업적 사용 가능
   <b>Made with ❤️ by Gift Genie</b><br/>
   🎁 Happy Gift Giving!
 </p>
+
+
+## Paid AI access and budgets
+
+See [server-only operator access and shared Redis budget configuration](docs/PAID_AI.md) before enabling Gemini. The UI access code is kept only in page memory.

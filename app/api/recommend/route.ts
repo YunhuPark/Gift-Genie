@@ -1,3 +1,4 @@
+import { acquirePaidAi, readPaidJson, PaidAiError } from '../../../lib/paid-ai';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -33,8 +34,8 @@ async function tryGenerateWithModels(prompt: string): Promise<string> {
   for (const modelName of MODELS) {
     try {
       console.log(`Trying model: ${modelName}`);
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent(prompt);
+      const model = genAI.getGenerativeModel({ model: modelName, generationConfig: { maxOutputTokens: 2048 } });
+      const result = await model.generateContent(prompt, { timeout: 20000 });
       const response = await result.response;
       const text = response.text();
       console.log(`Success with model: ${modelName}`);
@@ -64,18 +65,18 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "잘못된 요청입니다." },
-      { status: 400 }
-    );
+    body = await readPaidJson(request, 8192) as unknown as RecommendationRequest;
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Invalid request' },
+      { status: error instanceof PaidAiError ? error.status : 400 });
   }
 
   const { target, situation, budget } = body;
 
   // Validation
-  if (!target || !situation || !budget) {
+  if (typeof target !== 'string' || !target.trim() || target.length > 200 ||
+      typeof situation !== 'string' || !situation.trim() || situation.length > 1000 ||
+      typeof budget !== 'number' || !Number.isFinite(budget) || budget < 1 || budget > 100000000) {
     return NextResponse.json(
       { error: "Missing required fields: target, situation, budget" },
       { status: 400 }
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Check if API key exists
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY || process.env.PAID_AI_ENABLED === 'false') {
     console.error("GEMINI_API_KEY is not configured");
     const fallback = generateFallbackRecommendations(target, situation, budget);
     return NextResponse.json({
@@ -127,7 +128,9 @@ export async function POST(request: NextRequest) {
 JSON만 출력하세요:`;
 
     // Try multiple models with fallback
-    const text = await tryGenerateWithModels(prompt);
+    const release = await acquirePaidAi(request, MODELS.length);
+    let text: string;
+    try { text = await tryGenerateWithModels(prompt); } finally { await release(); }
 
     // Parse JSON from response
     let recommendations: GiftRecommendation[];
@@ -156,6 +159,7 @@ JSON만 출력하세요:`;
 
     return NextResponse.json({ recommendations });
   } catch (error: any) {
+    if (error instanceof PaidAiError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error("API Error:", error.message?.substring(0, 200));
 
     const fallback = generateFallbackRecommendations(target, situation, budget);
