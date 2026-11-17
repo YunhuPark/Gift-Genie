@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Check if API key exists
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY || process.env.PAID_AI_ENABLED === 'false') {
     console.error("GEMINI_API_KEY is not configured");
     const fallback = generateFallbackRecommendations(target, situation, budget);
     return NextResponse.json({

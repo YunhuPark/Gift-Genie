@@ -18,7 +18,7 @@ redis.call('ZADD', KEYS[3], now + 120000, ARGV[2]); redis.call('EXPIRE', KEYS[3]
 return 1`;
 
 function authenticate(request: Request) {
-  if (!process.env.GEMINI_API_KEY) return; // deterministic free fallback
+  if (!process.env.GEMINI_API_KEY || process.env.PAID_AI_ENABLED === 'false') return; // deterministic free fallback
   const expected = process.env.AI_ACCESS_TOKEN;
   if (!expected || expected.length < 32) throw new PaidAiError(503, 'Paid AI is not enabled');
   const actual = request.headers.get('authorization') || '';
@@ -52,6 +52,7 @@ export async function readPaidJson(request: Request, maxBytes: number): Promise<
 }
 
 export async function acquirePaidAi(request: Request, attempts = 1): Promise<() => Promise<void>> {
+  if (process.env.PAID_AI_ENABLED === 'false') throw new PaidAiError(503, 'Paid AI is disabled');
   authenticate(request);
   if (!Number.isInteger(attempts) || attempts < 1 || attempts > 3) {
     throw new PaidAiError(503, 'Invalid provider attempt budget');
