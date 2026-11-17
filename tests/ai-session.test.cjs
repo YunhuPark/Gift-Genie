@@ -16,5 +16,5 @@ test('operator code is initially absent, explicitly applied, and removable from 
  assert.equal(session.aiHeaders().Authorization,'Bearer synthetic-operator-code');
  session.setAiAccessToken('');
  assert.deepEqual(Object.keys(session.aiHeaders()),[]);
- 
+
 });

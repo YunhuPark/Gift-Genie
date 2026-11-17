@@ -23,4 +23,3 @@ test('public paid route rejects missing credentials before spending tokens', asy
   assert.equal(response.status, 401);
   assert.equal(calls, 0);
 });
-
