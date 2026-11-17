@@ -1,4 +1,6 @@
 "use client";
+import { aiHeaders } from '../lib/ai-session';
+import { AiAccessPanel } from './AiAccessPanel';
 
 import { motion } from "framer-motion";
 import { ArrowLeft, Gift, User, Calendar, Wallet, Sparkles, RefreshCw } from "lucide-react";
@@ -57,18 +59,21 @@ export default function GiftInputForm({ onBack }: GiftInputFormProps) {
     try {
       const response = await fetch("/api/recommend", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...aiHeaders() },
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("Failed to get recommendations");
+      if (!response.ok) {
+        const failure = await response.json();
+        throw new Error(failure.error || '추천을 가져올 수 없습니다.');
+      }
 
       const result = await response.json();
       setRecommendations(result.recommendations);
       setShowResults(true);
     } catch (err) {
       console.error("Error fetching recommendations:", err);
-      setError("추천을 가져오는 중 문제가 발생했어요. 다시 시도해주세요.");
+      setError(err instanceof Error ? err.message : '추천을 가져올 수 없습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -258,6 +263,7 @@ export default function GiftInputForm({ onBack }: GiftInputFormProps) {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        <AiAccessPanel />
         {/* Target */}
         <div className="space-y-2.5">
           <label className="flex items-center gap-2 text-sm font-medium text-white/70">
